@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2563eb"><link rel="manifest" href="manifest.json"><title>Minha Agenda</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#172033}header{background:#2563eb;color:#fff;padding:20px 18px 18px;border-radius:0 0 22px 22px}h1{margin:0;font-size:25px}header p{margin:6px 0 0;opacity:.9}.wrap{padding:16px 16px 90px}.tabs{display:flex;gap:8px;overflow:auto;margin-bottom:14px}.tabs button{border:0;background:#fff;padding:10px 13px;border-radius:20px;white-space:nowrap}.tabs button.active{background:#2563eb;color:#fff}.card{background:#fff;border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 2px 10px #0000000d}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{text-align:center}.stat b{display:block;font-size:22px;color:#2563eb}input,textarea,select{width:100%;padding:12px;border:1px solid #d7dce5;border-radius:10px;margin:5px 0 9px;font-size:16px}textarea{min-height:110px}button.primary{width:100%;border:0;background:#2563eb;color:#fff;padding:13px;border-radius:10px;font-size:16px}.item{display:flex;justify-content:space-between;gap:10px;align-items:center;border-top:1px solid #eee;padding:12px 0}.item:first-child{border-top:0}.item small{color:#667085}.del{border:0;background:#fee2e2;color:#b91c1c;border-radius:8px;padding:8px}.check{width:20px;height:20px}.fab{position:fixed;right:20px;bottom:22px;width:58px;height:58px;border:0;border-radius:50%;background:#2563eb;color:white;font-size:30px;box-shadow:0 5px 18px #0003}.hidden{display:none}.empty{text-align:center;color:#777;padding:20px}
+</style></head><body>
+<header><h1>📒 Minha Agenda</h1><p id="date"></p></header>
+<div class="wrap"><div class="tabs">
+<button class="active" onclick="show('home',this)">Hoje</button><button onclick="show('tasks',this)">Tarefas</button><button onclick="show('events',this)">Compromissos</button><button onclick="show('notes',this)">Anotações</button><button onclick="show('services',this)">Serviços</button>
+</div>
+<section id="home"><div class="card stats"><div class="stat"><b id="st">0</b>Tarefas</div><div class="stat"><b id="se">0</b>Hoje</div><div class="stat"><b id="sn">0</b>Anotações</div></div><div class="card"><h3>Resumo de hoje</h3><div id="today"></div></div></section>
+<section id="tasks" class="hidden"><div class="card"><h3>Nova tarefa</h3><input id="taskTitle" placeholder="O que precisa fazer?"><input id="taskDate" type="date"><input id="taskTime" type="time"><button class="primary" onclick="addTask()">Adicionar</button></div><div class="card"><div id="taskList"></div></div></section>
+<section id="events" class="hidden"><div class="card"><h3>Novo compromisso</h3><input id="eventTitle" placeholder="Compromisso"><input id="eventDate" type="date"><input id="eventTime" type="time"><input id="eventPlace" placeholder="Local"><button class="primary" onclick="addEvent()">Adicionar</button></div><div class="card"><div id="eventList"></div></div></section>
+<section id="notes" class="hidden"><div class="card"><h3>Nova anotação</h3><input id="noteTitle" placeholder="Título"><textarea id="noteText" placeholder="Escreva sua anotação..."></textarea><button class="primary" onclick="addNote()">Salvar anotação</button></div><div class="card"><div id="noteList"></div></div></section>
+<section id="services" class="hidden"><div class="card"><h3>Novo serviço</h3><input id="svcClient" placeholder="Cliente"><input id="svcName" placeholder="Serviço"><input id="svcDate" type="date"><input id="svcValue" type="number" step="0.01" placeholder="Valor (R$)"><button class="primary" onclick="addService()">Salvar serviço</button></div><div class="card"><div id="svcList"></div></div></section>
+</div><button class="fab" onclick="quick()">+</button>
+<script>
+const K='agenda-v1';let db=JSON.parse(localStorage.getItem(K)||'{"tasks":[],"events":[],"notes":[],"services":[]}');
+const save=()=>{localStorage.setItem(K,JSON.stringify(db));render()};
+const todayStr=()=>new Date().toISOString().slice(0,10);
+document.getElementById('date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+function show(id,b){document.querySelectorAll('section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
+function addTask(){let t=taskTitle.value.trim();if(!t)return;db.tasks.push({id:Date.now(),title:t,date:taskDate.value||todayStr(),time:taskTime.value,done:false});taskTitle.value='';save()}
+function addEvent(){let t=eventTitle.value.trim();if(!t)return;db.events.push({id:Date.now(),title:t,date:eventDate.value||todayStr(),time:eventTime.value,place:eventPlace.value});eventTitle.value=eventPlace.value='';save()}
+function addNote(){let t=noteTitle.value.trim(),x=noteText.value.trim();if(!t&&!x)return;db.notes.push({id:Date.now(),title:t||'Anotação',text:x});noteTitle.value=noteText.value='';save()}
+function addService(){let c=svcClient.value.trim(),s=svcName.value.trim();if(!c&&!s)return;db.services.push({id:Date.now(),client:c,service:s,date:svcDate.value||todayStr(),value:svcValue.value});svcClient.value=svcName.value=svcDate.value=svcValue.value='';save()}
+function del(type,id){db[type]=db[type].filter(x=>x.id!==id);save()}
+function toggle(id){let x=db.tasks.find(x=>x.id===id);if(x)x.done=!x.done;save()}
+function fmt(d){return d?new Date(d+'T12:00').toLocaleDateString('pt-BR'):''}
+function render(){
+st.textContent=db.tasks.filter(x=>!x.done).length;se.textContent=db.events.filter(x=>x.date===todayStr()).length;sn.textContent=db.notes.length;
+let all=[...db.tasks.filter(x=>x.date===todayStr()).map(x=>({s:'Tarefa',t:x.title})),...db.events.filter(x=>x.date===todayStr()).map(x=>({s:'Compromisso',t:x.title}))];today.innerHTML=all.length?all.map(x=>'<div class="item"><span><b>'+x.s+'</b><br>'+x.t+'</span></div>').join(''):'<div class="empty">Nada marcado para hoje.</div>';
+taskList.innerHTML=db.tasks.length?db.tasks.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(x=>'<div class="item"><span><input class="check" type="checkbox" '+(x.done?'checked':'')+' onchange="toggle('+x.id+')"> <b style="'+(x.done?'text-decoration:line-through':'')+'">'+x.title+'</b><br><small>'+fmt(x.date)+' '+(x.time||'')+'</small></span><button class="del" onclick="del(\'tasks\','+x.id+')">Excluir</button></div>').join(''):'<div class="empty">Nenhuma tarefa.</div>';
+eventList.innerHTML=db.events.length?db.events.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(x=>'<div class="item"><span><b>'+x.title+'</b><br><small>'+fmt(x.date)+' '+(x.time||'')+(x.place?' • '+x.place:'')+'</small></span><button class="del" onclick="del(\'events\','+x.id+')">Excluir</button></div>').join(''):'<div class="empty">Nenhum compromisso.</div>';
+noteList.innerHTML=db.notes.length?db.notes.slice().reverse().map(x=>'<div class="item"><span><b>'+x.title+'</b><br><small>'+x.text+'</small></span><button class="del" onclick="del(\'notes\','+x.id+')">Excluir</button></div>').join(''):'<div class="empty">Nenhuma anotação.</div>';
+svcList.innerHTML=db.services.length?db.services.slice().reverse().map(x=>'<div class="item"><span><b>'+x.client+'</b><br>'+x.service+'<br><small>'+fmt(x.date)+' • R$ '+Number(x.value||0).toFixed(2).replace('.',',')+'</small></span><button class="del" onclick="del(\'services\','+x.id+')">Excluir</button></div>').join(''):'<div class="empty">Nenhum serviço.</div>';
+}
+function quick(){show('tasks',document.querySelectorAll('.tabs button')[1]);taskTitle.focus()}
+render();if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+</script></body></html>
