@@ -14,7 +14,7 @@
 <section id="services" class="hidden"><div class="card"><h3>Novo serviço</h3><input id="svcClient" placeholder="Cliente"><input id="svcName" placeholder="Serviço"><input id="svcDate" type="date"><input id="svcValue" type="number" step="0.01" placeholder="Valor (R$)"><button class="primary" id="svcBtn" onclick="saveService()">Salvar serviço</button><button class="secondary hidden" id="svcCancel" onclick="cancelEdit('service')">Cancelar edição</button></div><div class="card"><div id="svcList"></div></div></section>
 </div><button class="fab" onclick="quick()">+</button>
 <script>
-const K='anotacoes-v1';let db=JSON.parse(localStorage.getItem(K)||'{"tasks":[],"events":[],"notes":[],"services":[]}');let editing=null;
+const K='anotacoes-v1';const OLD='agenda-v1';let db=JSON.parse(localStorage.getItem(K)||localStorage.getItem(OLD)||'{"tasks":[],"events":[],"notes":[],"services":[]}');let editing=null;
 const save=()=>{localStorage.setItem(K,JSON.stringify(db));render()};
 const todayStr=()=>new Date().toISOString().slice(0,10);
 document.getElementById('date').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
